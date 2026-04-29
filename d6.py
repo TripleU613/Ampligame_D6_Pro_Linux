@@ -64,7 +64,13 @@ def label_jpeg(text, bg=(30,30,30), fg=(255,255,255)):
     return jpeg(img)
 
 def jpeg(img):
-    out = img.convert("RGB").resize(LCD, Image.LANCZOS).rotate(180)
+    img = img.convert("RGB")
+    # center-crop to square so non-square sources don't stretch
+    w, h = img.size
+    if w != h:
+        s = min(w, h)
+        img = img.crop(((w - s) // 2, (h - s) // 2, (w + s) // 2, (h + s) // 2))
+    out = img.resize(LCD, Image.LANCZOS).rotate(180)
     b = io.BytesIO(); out.save(b, "JPEG", quality=88); return b.getvalue()
 
 # ─── device ───
