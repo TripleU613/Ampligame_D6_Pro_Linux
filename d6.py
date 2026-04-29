@@ -26,6 +26,18 @@ LCD         = (105, 105)
 N           = 15
 CFG         = Path(os.environ.get("D6_CFG", Path.home() / ".config/d6.json"))
 
+# Logical (user-facing) ↔ device byte mapping. The hardware numbers its
+# bytes top-to-bottom in the device's own frame, but typical mounting
+# orientation has the device's top facing the user's bottom (which is
+# why images are rotated 180° before sending). Vertically flipping rows
+# here lets the config use the natural ordering: 1=top-left, 15=bot-right.
+def L2D(n: int) -> int:
+    if 1  <= n <= 5:  return n + 10   # user top row 1..5    → device bytes 11..15
+    if 6  <= n <= 10: return n        # user mid row 6..10   → device bytes 6..10
+    if 11 <= n <= 15: return n - 10   # user bot row 11..15  → device bytes 1..5
+    return n
+D2L = L2D  # symmetric
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s", datefmt="%H:%M:%S")
 log = logging.getLogger("d6")
 
@@ -153,16 +165,17 @@ def render(dev, cfg, gifs):
     # NOTE: skipping clear_all — the CLE\xff command appears to silence the
     # firmware's input-scan engine on this firmware variant. Keys without
     # config will simply keep their previous image.
-    for i in range(1, N+1):
+    for i in range(1, N+1):                        # i = logical button (user-facing)
         spec = cfg.get("buttons", {}).get(str(i))
         if not spec: continue
         b = build(spec)
         if not b: continue
+        d_key = L2D(i) - 1                          # device byte index (0-based)
         if b[0] == "img":
-            try: dev.img(i-1, b[1])
+            try: dev.img(d_key, b[1])
             except Exception as e: log.warning(f"key {i}: {e}")
         elif b[0] == "gif":
-            g = Gif(dev, i-1, b[1], b[2]); gifs[i] = g; g.start()
+            g = Gif(dev, d_key, b[1], b[2]); gifs[i] = g; g.start()
     dev.commit()
 
 def run_cmd(cmd, label):
@@ -219,10 +232,11 @@ def main():
         while not stop.is_set():
             ev = dev.read_event()
             if ev is not None:
-                key, state = ev
+                key, state = ev                          # key = device byte (0-based)
                 if state == 1:
-                    spec = cfg.get("buttons", {}).get(str(key+1), {})
-                    run_cmd(spec.get("command"), f"key{key+1}")
+                    logical = D2L(key + 1)               # → user-facing button number
+                    spec = cfg.get("buttons", {}).get(str(logical), {})
+                    run_cmd(spec.get("command"), f"key{logical}")
             now = time.time()
             if now - last_check > 1.0:
                 last_check = now

@@ -68,17 +68,22 @@ sudo D6_USER=$USER python3 d6-cli.py
 - `bg`, `fg` — `[R,G,B]` colors (only used with `label`)
 - `command` — shell command run on press (executes as `$D6_USER`, with desktop env injected)
 
-## Button-to-physical mapping
+## Button layout
 
-Bytes are numbered **per-row, right-to-left** as you face the device:
+Config keys use natural top→bottom, left→right ordering:
 
 ```
-top:    5  4  3  2  1
-mid:   10  9  8  7  6
-bot:   15 14 13 12 11
+top:     1  2  3  4  5
+mid:     6  7  8  9 10
+bot:    11 12 13 14 15
 ```
 
-So config key `"1"` maps to the **top-right** physical button.
+Hardware quirk: the device numbers its bytes top-to-bottom in its own
+internal frame, but the device is normally mounted with that frame
+flipped 180° relative to the user (which is why all images get rotated
+180° before upload). The daemon does the row-flip automatically — you
+write the config in user-natural order; it talks to the hardware in its
+own order.
 
 ## Running
 

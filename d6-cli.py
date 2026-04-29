@@ -74,11 +74,11 @@ def save_cfg(cfg):
 
 # ─── interactive ───
 def show_layout(cfg):
-    head("current layout (top → bottom, right → left within each row)")
-    print(f"  {DIM}physical positions:{RESET}")
-    print(f"    top:   [ 5][ 4][ 3][ 2][ 1]")
-    print(f"    mid:   [10][ 9][ 8][ 7][ 6]")
-    print(f"    bot:   [15][14][13][12][11]")
+    head("current layout — top → bottom, left → right (natural)")
+    print(f"  {DIM}positions:{RESET}")
+    print(f"    top:   [ 1][ 2][ 3][ 4][ 5]")
+    print(f"    mid:   [ 6][ 7][ 8][ 9][10]")
+    print(f"    bot:   [11][12][13][14][15]")
     print(f"  {DIM}bound:{RESET}")
     for i in range(1, KEYS + 1):
         spec = cfg.get("buttons", {}).get(str(i), {})
