@@ -36,7 +36,12 @@ def L2D(n: int) -> int:
     if 6  <= n <= 10: return n        # user mid row 6..10   → device bytes 6..10
     if 11 <= n <= 15: return n - 10   # user bot row 11..15  → device bytes 1..5
     return n
-D2L = L2D  # symmetric
+def D2L(n: int) -> int:
+    # Buttons (input) use a different frame from LCDs (output): pressing
+    # physical top-left fires device byte 1 directly — no row flip needed
+    # on the input path. Keep this as identity so commands match the
+    # natural numbering shown on screen.
+    return n
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s", datefmt="%H:%M:%S")
 log = logging.getLogger("d6")
